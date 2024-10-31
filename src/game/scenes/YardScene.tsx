@@ -17,7 +17,7 @@ export class YardScene extends Scene {
   cursors: Phaser.Types.Input.Keyboard.CursorKeys
   yardSpaces: Phaser.Physics.Arcade.StaticGroup
   spaceSeparators: Phaser.Physics.Arcade.StaticGroup
-  score = 0;
+  score = 0
   scoreText: Phaser.GameObjects.Text
   gameOver = false
   reverseKey: Phaser.Input.Keyboard.Key
@@ -30,17 +30,17 @@ export class YardScene extends Scene {
   exitArea: ExitObject
 
   constructor() {
-    super('Yard');
+    super('Yard')
   }
 
 
   create() {
-    this.add.image(1024 / 2, 768 / 2, 'background');
+    this.add.image(1024 / 2, 768 / 2, 'background')
 
     // this.physics.world.defaults.debugShowBody = true;
     // this.physics.world.defaults.bodyDebugColor = 0xff00ff;
 
-    this.platforms = this.physics.add.staticGroup();
+    this.platforms = this.physics.add.staticGroup()
 
     this.add.image(1024 / 2, 768 / 2, 'yard').setScale(0.25)
     this.add.image(1024 / 2, 768 / 2, 'dock').setScale(0.25)
@@ -112,32 +112,31 @@ export class YardScene extends Scene {
       key: 'left',
       frames: [{ key: 'trailer', frame: 1 }],
       frameRate: 10,
-      repeat: -1
-    });
+      repeat: -1,
+    })
     this.anims.create({
       key: 'right',
       frames: [{ key: 'trailer', frame: 3 }],
       frameRate: 10,
-      repeat: -1
-    });
+      repeat: -1,
+    })
     this.anims.create({
       key: 'up',
       frames: [{ key: 'trailer', frame: 0 }],
       frameRate: 10,
-      repeat: -1
-    });
+      repeat: -1,
+    })
     this.anims.create({
       key: 'down',
       frames: [{ key: 'trailer', frame: 2 }],
       frameRate: 10,
-      repeat: -1
-    });
-
+      repeat: -1,
+    })
 
     // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion
-    this.cursors = this.input.keyboard!!.createCursorKeys();
+    this.cursors = this.input.keyboard!!.createCursorKeys()
     // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion
-    this.reverseKey = this.input.keyboard!!.addKey("R")
+    this.reverseKey = this.input.keyboard!!.addKey('R')
 
     // this.stars = this.physics.add.group({
     //   key: 'star',
@@ -214,3 +213,4 @@ export class YardScene extends Scene {
     }
   }
 }
+

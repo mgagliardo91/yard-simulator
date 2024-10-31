@@ -9,8 +9,8 @@ export class Game extends Scene
 
     constructor ()
     {
-        super('Game');
-    }
+        super("Game");
+    } 
 
     create ()
     {
@@ -34,3 +34,4 @@ export class Game extends Scene
         this.scene.start('GameOver');
     }
 }
+

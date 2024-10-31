@@ -57,7 +57,7 @@ export class DriverObject {
     }
 
     this.truck = undefined
-    const velocity = 300
+    const velocity = 600
     if (cursors.left.isDown) {
       this.driver.body.setVelocityX(-1 * velocity);
     }

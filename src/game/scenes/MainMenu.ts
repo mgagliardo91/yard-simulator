@@ -36,6 +36,7 @@ export class MainMenu extends Scene {
     start.on('pointerout', () => start.clearTint())
 
     start.on('pointerdown', () => {
+      this.registry.set('sequence', { totalTrucks: 1 })
       this.scene.start('Yard')
     })
   }

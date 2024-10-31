@@ -11,17 +11,21 @@ class YardState {
   enterLock: boolean = false
 }
 
+class YardSequence {
+  totalTrucks: number
+  enabledSpaces: {
+    dockIndexes: number[];
+    yardIndexes: number[];
+  }
+}
+
 export class YardScene extends Scene {
   platforms: Phaser.Physics.Arcade.StaticGroup
   truckGroup: Phaser.Physics.Arcade.Group
   cursors: Phaser.Types.Input.Keyboard.CursorKeys
-  yardSpaces: Phaser.Physics.Arcade.StaticGroup
   spaceSeparators: Phaser.Physics.Arcade.StaticGroup
-  score = 0
-  scoreText: Phaser.GameObjects.Text
-  gameOver = false
-  reverseKey: Phaser.Input.Keyboard.Key
   capturedKeys: CapturedKeys
+  yardSequence: YardSequence
 
   state: YardState = new YardState()
   driver: DriverObject
@@ -35,15 +39,12 @@ export class YardScene extends Scene {
 
 
   create() {
-    this.add.image(1024 / 2, 768 / 2, 'background')
+    this.add.image(1024 / 2, 768 / 2, 'background');
+    this.platforms = this.physics.add.staticGroup();
+    this.yardSequence = this.registry.get('sequence')
 
-    // this.physics.world.defaults.debugShowBody = true;
-    // this.physics.world.defaults.bodyDebugColor = 0xff00ff;
-
-    this.platforms = this.physics.add.staticGroup()
-
-    this.add.image(1024 / 2, 768 / 2, 'yard').setScale(0.25)
-    this.add.image(1024 / 2, 768 / 2, 'dock').setScale(0.25)
+    // this.add.image(1024 / 2, 768 / 2, 'yard').setScale(0.25)
+    // this.add.image(1024 / 2, 768 / 2, 'dock').setScale(0.25)
 
     this.capturedKeys = {
       enter: this.input.keyboard!.addKey('E')
@@ -88,14 +89,6 @@ export class YardScene extends Scene {
 
     // Trucks
     this.truckGroup = this.physics.add.group()
-    this.trucks.push(new TruckObject(100, 450, this))
-    this.trucks.push(new TruckObject(200, 450, this))
-    this.trucks.forEach((t) => {
-      this.physics.add.collider(this.driver.driver, t.truck, this.driver.onTruckCollision(t), undefined, this);
-      this.truckGroup.add(t.truck)
-      t.truck.body.setCollideWorldBounds(true);
-    })
-
     this.physics.add.collider(this.truckGroup, this.platforms)
     this.physics.add.collider(this.truckGroup, this.truckGroup)
     this.physics.add.collider(this.truckGroup, this.spaceSeparators)
@@ -105,8 +98,6 @@ export class YardScene extends Scene {
       this.physics.add.overlap(this.truckGroup, space.space, space.checkParking, undefined, this);
     })
     this.physics.add.overlap(this.truckGroup, this.exitArea.exitArea, this.exitArea.checkTruckDeparture)
-
-
 
     this.anims.create({
       key: 'left',
@@ -134,36 +125,28 @@ export class YardScene extends Scene {
     })
 
     // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion
-    this.cursors = this.input.keyboard!!.createCursorKeys()
-    // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion
-    this.reverseKey = this.input.keyboard!!.addKey('R')
+    this.cursors = this.input.keyboard!!.createCursorKeys();
 
-    // this.stars = this.physics.add.group({
-    //   key: 'star',
-    //   repeat: 11,
-    //   setXY: { x: 12, y: 0, stepX: 70 }
-    // });
-
-    // this.stars.children.iterate((child) => {
-    //   (child as Phaser.Physics.Arcade.Sprite).setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-    //   return null
-
-    // });
-    // this.physics.add.collider(this.stars, this.platforms);
-    // this.physics.add.overlap(this.player, this.stars, this.collectStar, undefined, this);
-    // this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', color: '#000' });
-
-    // this.bombs = this.physics.add.group();
-    // this.physics.add.collider(this.bombs, this.platforms);
-    // this.physics.add.collider(this.player, this.bombs, this.hitBomb, undefined, this);
-    // this.physics.add.collider(this.player, this.dockArea, this.onCollide, undefined, this)
+    // Generate
+    this.generateTruck()
     EventBus.emit('current-scene-ready', this);
+  }
+
+  generateTruck = () => {
+    if (this.trucks.length < this.yardSequence.totalTrucks) {
+      const truck = new TruckObject(600, 700, this)
+      this.physics.add.collider(this.driver.driver, truck.truck, this.driver.onTruckCollision(truck), undefined, this);
+      this.trucks.push(truck)
+      this.truckGroup.add(truck.truck)
+      truck.truck.body.setCollideWorldBounds(true);
+    }
   }
 
   update() {
     if (!this.state.enterLock && this.capturedKeys.enter.isDown && this.driver.truck) {
-      if (this.state.activeTruck) {
+      if (this.state.activeTruck && this.spaces.find((s) => s.containsTruck(this.state.activeTruck!.id))) {
         this.triggerTruckExit()
+        this.generateTruck()
       } else if (this.driver.truck) {
         this.triggerTruckStart()
       }
@@ -210,6 +193,10 @@ export class YardScene extends Scene {
       this.truckGroup.remove(this.trucks[truckIndex].truck)
       this.trucks[truckIndex].truck.destroy()
       this.trucks.splice(truckIndex, 1);
+    }
+
+    if (this.trucks.length == 0) {
+      this.scene.start('UpgradeStore')
     }
   }
 }

@@ -5,6 +5,7 @@ export class TruckObject {
   id = `${uuidv4()}`
   fullfilled: boolean = false
   spaceId: string | undefined = undefined
+  idleTime: number = 0
 
   constructor(x: number, y: number, scene: Phaser.Scene) {
     const truck = scene.add.sprite(x, y, 'trailer').setScale(.25)
@@ -37,7 +38,7 @@ export class TruckObject {
     this.truck.body.setVelocityX(0);
     this.truck.body.setVelocityY(0);
 
-    const velocity = 300
+    const velocity = 400
     if (cursors.left.isDown) {
       this.truck.body.setVelocityX(-1 * velocity);
       this.truck.anims.play('left', true);

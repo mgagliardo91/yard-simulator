@@ -52,6 +52,10 @@ export class SpaceObject {
     return this.config.isDock ?? true
   }
 
+  containsTruck = (truckId: string) => {
+    return this.truckId == truckId && this.isContained
+  }
+
   countUp = () => {
     if (this.fullfillmentTime && this.containedTime < this.fullfillmentTime) {
       this.containedTime = this.containedTime + 1

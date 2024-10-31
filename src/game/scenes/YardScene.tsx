@@ -9,6 +9,7 @@ import { ExitObject } from '../objects/Exit';
 class YardState {
   activeTruck: TruckObject | undefined
   enterLock: boolean = false
+  truckFullfillment: { [truckId: string]: { idleTime: number }} = {}
 }
 
 class YardSequence {
@@ -139,6 +140,7 @@ export class YardScene extends Scene {
       this.trucks.push(truck)
       this.truckGroup.add(truck.truck)
       truck.truck.body.setCollideWorldBounds(true);
+      truck.setIdleStatus(true)
     }
   }
 
@@ -188,14 +190,19 @@ export class YardScene extends Scene {
       return
     }
 
-    if (this.trucks[truckIndex].fullfilled) {
+    const truck = this.trucks[truckIndex]
+    if (truck.fullfilled) {
       this.triggerTruckExit()
-      this.truckGroup.remove(this.trucks[truckIndex].truck)
-      this.trucks[truckIndex].truck.destroy()
+      this.state.truckFullfillment[truck.id] = {
+        idleTime: truck.idleTime
+      }
+      this.truckGroup.remove(truck.truck)
+      truck.truck.destroy()
       this.trucks.splice(truckIndex, 1);
     }
 
     if (this.trucks.length == 0) {
+      console.log(this.state)
       this.scene.start('UpgradeStore')
     }
   }

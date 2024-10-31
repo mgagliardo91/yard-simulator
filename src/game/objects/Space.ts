@@ -20,7 +20,7 @@ const Colors = {
 export class SpaceObject {
   space: Phaser.GameObjects.Rectangle
   config: SpaceObjectConfig
-  scene: Phaser.Scene
+  time: Phaser.Time.Clock
   text: Phaser.GameObjects.Text
   id = `${uuidv4()}`
   private truckId: string
@@ -32,7 +32,7 @@ export class SpaceObject {
 
   constructor(x: number, y: number, scene: Phaser.Scene, config: SpaceObjectConfig = {}) {
     this.config = config
-    this.scene = scene
+    this.time = scene.time
     const { isDock } = this
     this.space = new Phaser.GameObjects.Rectangle(scene, x + 40, y + (!isDock ? 50 : 150), 80, 100)
     scene.add.existing(this.space)
@@ -68,7 +68,7 @@ export class SpaceObject {
   startTimer = () => {
     this.text.setVisible(true)
     this.clearTimer()
-    this.containmentTimer = this.scene.time.addEvent({
+    this.containmentTimer = this.time.addEvent({
       delay: 1000,
       callback: this.countUp,
       loop: true,
@@ -82,8 +82,8 @@ export class SpaceObject {
       this.space.fillColor = Colors.fullfilled
     } else if (this.isContained) {
       this.space.fillColor = Colors.contained
-    } else {
-      this.space.isFilled = false
+    } else if (!this.isDock) {
+      this.space.setFillStyle(0x2DDF5D)
     }
   }
 
@@ -98,7 +98,7 @@ export class SpaceObject {
   }
 
   clearTimer = () => {
-    if (this.containmentTimer) this.scene.time.removeEvent(this.containmentTimer)
+    if (this.containmentTimer) this.time.removeEvent(this.containmentTimer)
     this.containmentTimer = undefined
   }
   

@@ -4,6 +4,7 @@ export class DriverObject {
   driver: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody
   isDriving: boolean = false
   truck: TruckObject | undefined = undefined
+  velocity: number
 
   constructor(x: number, y: number, scene: Phaser.Scene) {
     const driver = new Phaser.GameObjects.Rectangle(scene, x + 8, y + 8, 16, 16)
@@ -11,6 +12,7 @@ export class DriverObject {
     this.driver = scene.physics.add.existing(driver, false) as Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody
     this.driver.body.setCollideWorldBounds(true);
     this.driver.body.pushable = false;
+    this.velocity = 300 + (scene.registry.get('workerSpeed') * 100)
   }
 
   onTruckCollision = (truck: TruckObject) => () => {
@@ -57,18 +59,17 @@ export class DriverObject {
     }
 
     this.truck = undefined
-    const velocity = 600
     if (cursors.left.isDown) {
-      this.driver.body.setVelocityX(-1 * velocity);
+      this.driver.body.setVelocityX(-1 * this.velocity);
     }
     else if (cursors.right.isDown) {
-      this.driver.body.setVelocityX(velocity);
+      this.driver.body.setVelocityX(this.velocity);
     }
     else if (cursors.up.isDown) {
-      this.driver.body.setVelocityY(-1 * velocity);
+      this.driver.body.setVelocityY(-1 * this.velocity);
     }
     else if (cursors.down.isDown) {
-      this.driver.body.setVelocityY(velocity);
+      this.driver.body.setVelocityY(this.velocity);
     }
   }
 }

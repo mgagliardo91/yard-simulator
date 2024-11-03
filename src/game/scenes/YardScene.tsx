@@ -1,22 +1,22 @@
-import { Scene } from 'phaser';
-import { EventBus } from '../EventBus';
-import { SpaceObject } from '../objects/Space';
-import { TruckObject } from '../objects/Truck';
-import { DriverObject } from '../objects/Driver';
-import { CapturedKeys } from '../types/capturedKeys';
-import { ExitObject } from '../objects/Exit';
+import { Scene } from 'phaser'
+import { EventBus } from '../EventBus'
+import { SpaceObject } from '../objects/Space'
+import { TruckObject } from '../objects/Truck'
+import { DriverObject } from '../objects/Driver'
+import { CapturedKeys } from '../types/capturedKeys'
+import { ExitObject } from '../objects/Exit'
 
 class YardState {
   activeTruck: TruckObject | undefined
   enterLock: boolean = false
-  truckFullfillment: { [truckId: string]: { idleTime: number }} = {}
+  truckFullfillment: { [truckId: string]: { idleTime: number } } = {}
 }
 
 class YardSequence {
   totalTrucks: number
   enabledSpaces: {
-    dockIndexes: number[];
-    yardIndexes: number[];
+    dockIndexes: number[]
+    yardIndexes: number[]
   }
 }
 
@@ -38,50 +38,76 @@ export class YardScene extends Scene {
     super('Yard')
   }
 
-
   create() {
-    this.add.image(1024 / 2, 768 / 2, 'background');
-    this.platforms = this.physics.add.staticGroup();
+    this.add.image(1024 / 2, 768 / 2, 'background')
+    this.platforms = this.physics.add.staticGroup()
     this.yardSequence = this.registry.get('sequence')
 
     // this.add.image(1024 / 2, 768 / 2, 'yard').setScale(0.25)
     // this.add.image(1024 / 2, 768 / 2, 'dock').setScale(0.25)
 
     this.capturedKeys = {
-      enter: this.input.keyboard!.addKey('E')
+      enter: this.input.keyboard!.addKey('E'),
     }
 
-    this.platforms.add(new Phaser.GameObjects.Rectangle(this, 1024 / 2, 50, 1024, 100))
-    this.platforms.add(new Phaser.GameObjects.Rectangle(this, 380 / 2, 718 + 25, 380, 50))
-    this.platforms.add(new Phaser.GameObjects.Rectangle(this, 644 + 380 / 2, 718 + 25, 380, 50))
+    const yardY = 460 //568
+
+    this.platforms.add(
+      this.add.image(1024 / 2, 50, 'warehouse').setDisplaySize(1024, 100),
+    )
+    this.platforms.add(this.add.image(380 / 2, yardY + 170, 'yard_fence'))
+    this.platforms.add(this.add.image(644 + 380 / 2, yardY + 170, 'yard_fence'))
 
     this.spaceSeparators = this.physics.add.staticGroup()
 
     // Dock
-    this.spaceSeparators.add(new Phaser.GameObjects.Rectangle(this, 15, 150, 10, 100))
+    this.spaceSeparators.add(this.add.image(15, 150, 'dock_separator'))
     for (let i = 20; i < 1024; i += 90) {
       if (i + 80 > 1024) {
-        break;
+        break
       }
-      this.spaces.push(new SpaceObject(i, 0, this, { onFullfilledHandler: this.onTruckFullfilled, onTruckDockedHandler: this.onTruckDocked }))
-      this.spaceSeparators.add(new Phaser.GameObjects.Rectangle(this, i + 85, 150, 10, 100))
+      this.spaces.push(
+        new SpaceObject(i, 0, this, {
+          onFullfilledHandler: this.onTruckFullfilled,
+          onTruckDockedHandler: this.onTruckDocked,
+        }),
+      )
+      this.spaceSeparators.add(this.add.image(i + 85, 150, 'dock_separator'))
     }
 
     // Yard
-    this.spaceSeparators.add(new Phaser.GameObjects.Rectangle(this, 15, 618 + 50, 10, 100))
+    this.spaceSeparators.add(this.add.image(15, yardY + 100, 'yard_separator'))
     for (let i = 0; i < 4; i++) {
-      this.spaces.push(new SpaceObject((i * 90 + 20), 568 + 50, this, { isDock: false }))
-      this.spaceSeparators.add(new Phaser.GameObjects.Rectangle(this, (i * 90 + 20) + 85, 618 + 50, 10, 100))
+      this.spaces.push(
+        new SpaceObject(i * 90 + 20, yardY + 50, this, { isDock: false }),
+      )
+      this.spaceSeparators.add(
+        this.add.image(i * 90 + 20 + 85, yardY + 100, 'yard_separator'),
+      )
     }
 
-    this.spaceSeparators.add(new Phaser.GameObjects.Rectangle(this, 649, 618 + 50, 10, 100))
+    this.spaceSeparators.add(this.add.image(649, yardY + 100, 'yard_separator'))
     for (let i = 0; i < 4; i++) {
-      this.spaces.push(new SpaceObject((i * 90 + 654), 568 + 50, this, { isDock: false }))
-      this.spaceSeparators.add(new Phaser.GameObjects.Rectangle(this, (i * 90 + 654) + 85, 618 + 50, 10, 100))
+      this.spaces.push(
+        new SpaceObject(i * 90 + 654, yardY + 50, this, { isDock: false }),
+      )
+      this.spaceSeparators.add(
+        this.add.image(i * 90 + 654 + 85, yardY + 100, 'yard_separator'),
+      )
     }
 
     // Exit
-    this.exitArea = new ExitObject(480, 768, this, { onDepatureHandler: this.onDeparture })
+    this.exitArea = new ExitObject(480, yardY + 300, this, {
+      onDepatureHandler: this.onDeparture,
+    })
+
+    this.platforms.add(
+      this.add.image(515, yardY + 120, 'check_in_booth').setOrigin(0.5),
+    )
+
+    this.add.image(1024 / 2, 768 - 60, 'main_road')
+
+    this.add.image(595, yardY + 120, 'enter')
 
     // Driver
     this.driver = new DriverObject(1024 / 2, 768 / 2, this)
@@ -96,9 +122,19 @@ export class YardScene extends Scene {
 
     // Space -> Truck Overlap
     this.spaces.forEach((space) => {
-      this.physics.add.overlap(this.truckGroup, space.space, space.checkParking, undefined, this);
+      this.physics.add.overlap(
+        this.truckGroup,
+        space.space,
+        space.checkParking,
+        undefined,
+        this,
+      )
     })
-    this.physics.add.overlap(this.truckGroup, this.exitArea.exitArea, this.exitArea.checkTruckDeparture)
+    this.physics.add.overlap(
+      this.truckGroup,
+      this.exitArea.exitArea,
+      this.exitArea.checkTruckDeparture,
+    )
 
     this.anims.create({
       key: 'left',
@@ -125,28 +161,66 @@ export class YardScene extends Scene {
       repeat: -1,
     })
 
+    this.anims.create({
+      key: 'worker_left',
+      frames: this.anims.generateFrameNumbers('worker', { start: 0, end: 2 }),
+      frameRate: 10,
+      repeat: -1,
+    })
+    this.anims.create({
+      key: 'worker_right',
+      frames: this.anims.generateFrameNumbers('worker', { start: 6, end: 8 }),
+      frameRate: 10,
+      repeat: -1,
+    })
+    this.anims.create({
+      key: 'worker_up',
+      frames: this.anims.generateFrameNumbers('worker', { start: 9, end: 11 }),
+      frameRate: 10,
+      repeat: -1,
+    })
+    this.anims.create({
+      key: 'worker_down',
+      frames: this.anims.generateFrameNumbers('worker', { start: 3, end: 5 }),
+      frameRate: 10,
+      repeat: -1,
+    })
+
     // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion
-    this.cursors = this.input.keyboard!!.createCursorKeys();
+    this.cursors = this.input.keyboard!!.createCursorKeys()
 
     // Generate
     this.generateTruck()
-    EventBus.emit('current-scene-ready', this);
+    EventBus.emit('current-scene-ready', this)
   }
 
   generateTruck = () => {
     if (this.trucks.length < this.yardSequence.totalTrucks) {
       const truck = new TruckObject(600, 700, this)
-      this.physics.add.collider(this.driver.driver, truck.truck, this.driver.onTruckCollision(truck), undefined, this);
+      this.physics.add.collider(
+        this.driver.driver,
+        truck.truck,
+        this.driver.onTruckCollision(truck),
+        undefined,
+        this,
+      )
       this.trucks.push(truck)
       this.truckGroup.add(truck.truck)
-      truck.truck.body.setCollideWorldBounds(true);
+      truck.truck.body.setCollideWorldBounds(true)
       truck.setIdleStatus(true)
     }
   }
 
   update() {
-    if (!this.state.enterLock && this.capturedKeys.enter.isDown && this.driver.truck) {
-      if (this.state.activeTruck && this.spaces.find((s) => s.containsTruck(this.state.activeTruck!.id))) {
+    if (
+      !this.state.enterLock &&
+      this.capturedKeys.enter.isDown &&
+      this.driver.truck
+    ) {
+      if (
+        this.state.activeTruck &&
+        this.spaces.find((s) => s.containsTruck(this.state.activeTruck!.id))
+      ) {
         this.triggerTruckExit()
         this.generateTruck()
       } else if (this.driver.truck) {
@@ -169,7 +243,7 @@ export class YardScene extends Scene {
     this.state.activeTruck?.setActive(false)
     this.state.activeTruck = undefined
   }
-  
+
   triggerTruckStart = () => {
     this.state.activeTruck = this.driver.truck
     this.state.activeTruck!.setActive(true)
@@ -180,11 +254,11 @@ export class YardScene extends Scene {
     this.trucks.find((t) => t.id == truckId)?.setDockSpace(spaceId)
   }
 
-  onTruckFullfilled = (truckId: string) =>  {
+  onTruckFullfilled = (truckId: string) => {
     this.trucks.find((t) => t.id == truckId)?.markFullfilled()
   }
 
-  onDeparture = (truckId: string) =>  {
+  onDeparture = (truckId: string) => {
     const truckIndex = this.trucks.findIndex((t) => t.id == truckId)
     if (truckIndex < 0) {
       return
@@ -194,16 +268,16 @@ export class YardScene extends Scene {
     if (truck.fullfilled) {
       this.triggerTruckExit()
       this.state.truckFullfillment[truck.id] = {
-        idleTime: truck.idleTime
+        idleTime: truck.idleTime,
       }
       this.truckGroup.remove(truck.truck)
       truck.truck.destroy()
-      this.trucks.splice(truckIndex, 1);
+      this.trucks.splice(truckIndex, 1)
     }
 
     if (this.trucks.length == 0) {
-      console.log(this.state)
-      this.scene.start('UpgradeStore')
+      this.registry.set('completedOrders', this.state.truckFullfillment)
+      this.scene.start('DayOverview')
     }
   }
 }

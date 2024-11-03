@@ -4,6 +4,7 @@ import { AUTO, Game } from 'phaser';
 import { Preloader } from './scenes/Preloader';
 import UpgradeStore from './scenes/UpgradeStore'
 import { MainMenu } from './scenes/MainMenu'
+import DayOverview from './scenes/DayOverview'
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
@@ -17,10 +18,10 @@ const config: Phaser.Types.Core.GameConfig = {
     default: 'arcade',
     arcade: {
       gravity: { y: 0, x: 0 },
-      debug: true,
+      //debug: true,
     },
   },
-  scene: [Boot, Preloader, MainMenu, YardScene, UpgradeStore],
+  scene: [Boot, Preloader, MainMenu, YardScene, UpgradeStore, DayOverview],
 }
 
 const StartGame = (parent: string) => {

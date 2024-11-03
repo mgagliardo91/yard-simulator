@@ -1,5 +1,4 @@
-import { TruckMetadata } from './Truck'
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'
 
 type OnFullfilledHandler = (truckId: string) => void
 type OnTruckDockedHandler = (truckId: string, spaceId: string) => void
@@ -11,10 +10,9 @@ export type SpaceObjectConfig = {
   onTruckDockedHandler?: OnTruckDockedHandler
 }
 
-
 const Colors = {
-  contained: 0xFF0000,
-  fullfilled: 0x808B8D,
+  contained: 0xff0000,
+  fullfilled: 0x808b8d,
 }
 
 export class SpaceObject {
@@ -24,28 +22,50 @@ export class SpaceObject {
   text: Phaser.GameObjects.Text
   id = `${uuidv4()}`
   private truckId: string
-  
+
   private isContained: boolean = false
   private containmentTimer: Phaser.Time.TimerEvent | undefined
   private containedTime: number = 0
   private isFullfilled: boolean = false
 
-  constructor(x: number, y: number, scene: Phaser.Scene, config: SpaceObjectConfig = {}) {
+  constructor(
+    x: number,
+    y: number,
+    scene: Phaser.Scene,
+    config: SpaceObjectConfig = {},
+  ) {
     this.config = config
     this.time = scene.time
     const { isDock } = this
-    this.space = new Phaser.GameObjects.Rectangle(scene, x + 40, y + (!isDock ? 50 : 150), 80, 100)
+    this.space = new Phaser.GameObjects.Rectangle(
+      scene,
+      x + 40,
+      y + (!isDock ? 50 : 150),
+      80,
+      100,
+    )
     scene.add.existing(this.space)
     scene.physics.add.existing(this.space, true)
 
     if (!isDock) {
-      this.space.setFillStyle(0x2DDF5D)
+      scene.add.image(x + 40, y + 50, 'yard_parking')
+      //this.space.setFillStyle(0x2ddf5d)
     } else {
-      scene.add.rectangle(x + 40, y + 50, 80, 100, 0x2DDF5D)
-      this.text = scene.add.text(x + 40, y + 215, `00:${`${this.fullfillmentTime! - this.containedTime}`.padStart(2, '0')}`, { color: 'black' }).setOrigin(0.5)
+      scene.add.image(x + 40, y + 65, 'dock_door').setOrigin(0.5, 0.5)
+      //scene.add.rectangle(x + 40, y + 65, 80, 70, 0x2ddf5d).setOrigin(0.5, 0.5)
+      this.text = scene.add
+        .text(
+          x + 40,
+          y + 215,
+          `00:${`${this.fullfillmentTime! - this.containedTime}`.padStart(
+            2,
+            '0',
+          )}`,
+          { color: 'black' },
+        )
+        .setOrigin(0.5)
       this.text.setVisible(false)
     }
-
   }
 
   get isDockSpace() {
@@ -59,7 +79,12 @@ export class SpaceObject {
   countUp = () => {
     if (this.fullfillmentTime && this.containedTime < this.fullfillmentTime) {
       this.containedTime = this.containedTime + 1
-      this.text.setText(`00:${`${this.fullfillmentTime - this.containedTime}`.padStart(2, '0')}`)
+      this.text.setText(
+        `00:${`${this.fullfillmentTime - this.containedTime}`.padStart(
+          2,
+          '0',
+        )}`,
+      )
     }
     this.setColor()
     this.checkFullfillment()
@@ -83,12 +108,16 @@ export class SpaceObject {
     } else if (this.isContained) {
       this.space.fillColor = Colors.contained
     } else if (!this.isDock) {
-      this.space.setFillStyle(0x2DDF5D)
+      this.space.setFillStyle(0x2ddf5d)
     }
   }
 
   checkFullfillment = () => {
-    if (!this.isFullfilled && this.fullfillmentTime && this.containedTime >= this.fullfillmentTime) {
+    if (
+      !this.isFullfilled &&
+      this.fullfillmentTime &&
+      this.containedTime >= this.fullfillmentTime
+    ) {
       this.isFullfilled = true
       this.clearTimer()
       this.config.onFullfilledHandler?.(this.truckId)
@@ -101,18 +130,24 @@ export class SpaceObject {
     if (this.containmentTimer) this.time.removeEvent(this.containmentTimer)
     this.containmentTimer = undefined
   }
-  
+
   get fullfillmentTime() {
     return this.isDock ? 5 : undefined
   }
 
   get isDock() {
-    return this.config.isDock ?? true 
+    return this.config.isDock ?? true
   }
 
   checkParking: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback = (s, t) => {
-    const truck = t as Phaser.Types.Physics.Arcade.GameObjectWithBody & { x: number; y: number }
-    const space = s as Phaser.Types.Physics.Arcade.GameObjectWithBody & { x: number; y: number }
+    const truck = t as Phaser.Types.Physics.Arcade.GameObjectWithBody & {
+      x: number
+      y: number
+    }
+    const space = s as Phaser.Types.Physics.Arcade.GameObjectWithBody & {
+      x: number
+      y: number
+    }
     const truckId: string = truck.getData('id')
     const fullfilled: string = truck.getData('fullfilled')
     const spaceId: string = truck.getData('spaceId')
@@ -129,8 +164,18 @@ export class SpaceObject {
     const height = space.body.height + 10
 
     const contained = Phaser.Geom.Rectangle.ContainsRect(
-      new Phaser.Geom.Rectangle(space.x - (width / 2), space.y - (height / 2), width, height),
-      new Phaser.Geom.Rectangle(truck.x - (truck.body.width / 2), truck.y - (truck.body.height / 2), truck.body.width, truck.body.height)
+      new Phaser.Geom.Rectangle(
+        space.x - width / 2,
+        space.y - height / 2,
+        width,
+        height,
+      ),
+      new Phaser.Geom.Rectangle(
+        truck.x - truck.body.width / 2,
+        truck.y - truck.body.height / 2,
+        truck.body.width,
+        truck.body.height,
+      ),
     )
 
     if (!this.isContained && contained) {
@@ -144,9 +189,10 @@ export class SpaceObject {
     } else if (this.isContained && !contained) {
       this.isContained = false
       this.setColor()
-      if (this.isDock) { 
+      if (this.isDock) {
         this.clearTimer()
       }
     }
   }
 }
+

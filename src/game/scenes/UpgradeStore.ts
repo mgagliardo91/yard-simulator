@@ -17,8 +17,6 @@ export default class UpgradeStore extends Scene {
 
   preload() {
     this.load.image('buy-button', 'assets/buyButton.png')
-    this.load.image('cursor', 'assets/cursor.png')
-    this.load.image('coin', 'assets/coin.png')
   }
 
   create() {
@@ -91,60 +89,45 @@ export default class UpgradeStore extends Scene {
       .text(x, y, '?', { fontSize: 20, color: '#000', align: 'right' })
       .setOrigin(0, 0.5)
 
-    const upgradeStateObj = this.add
+    const upgradeProgress = this.add
       .text(width * 0.5, y, '', {
         fontSize: 20,
         color: '#000',
       })
       .setOrigin(0.5, 0.5)
 
-    const refreshLabel = () => {
+    const refresh = () => {
       const hasDeps = this.hasRequiredDeps(upgradeKey)
 
       if (hasDeps) {
         labelObj.setText(config.label)
-      } else {
-        labelObj.setText('?')
-      }
-    }
-    const refreshUpgradeState = () => {
-      const hasDeps = this.hasRequiredDeps(upgradeKey)
-
-      if (hasDeps) {
-        const currentLvl = this.registry.get(upgradeKey)
+        const level = this.registry.get(upgradeKey)
         const upgradeText = Array(config.upgrades)
           .fill(null)
           .map((_, i) => {
-            if (currentLvl >= i + 1) {
+            if (level >= i + 1) {
               return '+'
             }
             return '_'
           })
           .join(' ')
-        upgradeStateObj.setText(upgradeText)
+        upgradeProgress.setText(upgradeText)
       } else {
-        upgradeStateObj.setText('?')
+        upgradeProgress.setText('?')
+        labelObj.setText('?')
       }
     }
 
-    if (config.deps) {
-      const deps = config.deps.map(([dep]) => dep)
-      this.registry.events.on('changedata', (_: unknown, key: Upgrades) => {
-        if (deps.includes(key)) {
-          refreshLabel()
-          refreshUpgradeState()
-        }
-      })
-    }
+    const deps = config.deps?.map(([dep]) => dep) ?? []
+    const keysToWatch = [upgradeKey, ...deps]
 
-    this.registry.events.on('changedata', (_: unknown, key: string) => {
-      if (key === upgradeKey) {
-        refreshUpgradeState()
+    this.registry.events.on('changedata', (_: unknown, key: Upgrades) => {
+      if (keysToWatch.includes(key)) {
+        refresh()
       }
     })
 
-    refreshLabel()
-    refreshUpgradeState()
+    refresh()
     this.renderBuyButton([width - 100, y], upgradeKey)
   }
 
@@ -164,14 +147,12 @@ export default class UpgradeStore extends Scene {
       .setOrigin(0.5)
 
     const calcCost = () => {
-      const currentUpgrade = this.registry.get(upgradeKey)
-      return (
-        config.baseCost + config.baseCost * (currentUpgrade * config.costMult)
-      )
+      const level = this.registry.get(upgradeKey)
+      return config.baseCost + config.baseCost * (level * config.costMult)
     }
 
     const refreshButton = () => {
-      const currentUpgrade = this.registry.get(upgradeKey)
+      const level = this.registry.get(upgradeKey)
       const coins = this.registry.get('coins')
       const cost = calcCost()
       const canAfford = coins >= cost
@@ -180,7 +161,7 @@ export default class UpgradeStore extends Scene {
       if (!hasDeps) {
         buyButton.disableInteractive()
         buttonTextObj.setText(`?`)
-      } else if (currentUpgrade >= config.upgrades) {
+      } else if (level >= config.upgrades) {
         buyButton.disableInteractive()
         buyButton.setTint(0xb4afaf)
         buttonTextObj.setText(`Max`)
@@ -197,26 +178,22 @@ export default class UpgradeStore extends Scene {
     buyButton.on('pointerover', () => buyButton.setTint(0x66ff7f))
     buyButton.on('pointerout', () => buyButton.clearTint())
     buyButton.on('pointerdown', () => {
+      const level = this.registry.get(upgradeKey)
       const cost = calcCost()
 
       this.registry.set('coins', this.registry.get('coins') - cost)
-      this.registry.set(upgradeKey, this.registry.get(upgradeKey) + 1)
+      this.registry.set(upgradeKey, level + 1)
+      refreshButton()
     })
 
-    this.registry.events.on('changedata', (_: unknown, key: string) => {
-      if (['coins', upgradeKey].includes(key)) {
+    const deps = config.deps?.map(([dep]) => dep) ?? []
+    const keysToWatch = [upgradeKey, ...deps]
+
+    this.registry.events.on('changedata', (_: unknown, key: Upgrades) => {
+      if (keysToWatch.includes(key)) {
         refreshButton()
       }
     })
-
-    if (config.deps) {
-      const deps = config.deps.map(([dep]) => dep)
-      this.registry.events.on('changedata', (_: unknown, key: Upgrades) => {
-        if (deps.includes(key)) {
-          refreshButton()
-        }
-      })
-    }
 
     refreshButton()
   }
@@ -224,14 +201,13 @@ export default class UpgradeStore extends Scene {
   renderStartNextDay() {
     const { width, height } = this.scale
     const nextDayButton = this.add
-      .image(width - 75, height - 50, 'buy-button')
-      .setDisplaySize(100, 33)
-      .setOrigin(0.5)
+      .image(width * 0.5, height - 75, 'overviewBtn')
+      .setDisplaySize(200, 50)
       .setInteractive()
 
     this.add
       .text(nextDayButton.x, nextDayButton.y, 'Start Next Day', {
-        fontSize: 10,
+        fontSize: 20,
         color: '#000',
         align: 'center',
       })
@@ -240,8 +216,13 @@ export default class UpgradeStore extends Scene {
     nextDayButton.on('pointerover', () => nextDayButton.setTint(0x66ff7f))
     nextDayButton.on('pointerout', () => nextDayButton.clearTint())
     nextDayButton.on('pointerdown', () => {
-      this.scene.start('Yard')
+      this.startNextScene()
     })
   }
-}
 
+  startNextScene() {
+    this.registry.events.removeListener('changedata')
+    this.scene.start('Yard')
+  }
+
+}

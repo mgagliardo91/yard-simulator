@@ -27,7 +27,7 @@ export class Preloader extends Scene {
   }
 
   createGameState() {
-    this.registry.set('coins', 1000)
+    this.registry.set('coins', 0)
     this.registry.set('day', 0)
 
     registerUpgradeConfigs(this.registry)
@@ -37,12 +37,37 @@ export class Preloader extends Scene {
     //  Load the assets for the game - Replace with your own assets
     this.load.setPath('assets')
 
+    // Common images
+    this.load.image('coin', 'coin.png')
     this.load.image('background', 'background.png')
     this.load.image('yard', 'yard_space.png')
     this.load.image('dock', 'dock_door.png')
+
+    // Level Art
+    this.load.image('warehouse', 'level/Warehouse.png')
+    this.load.image('dock_door', 'level/dock_door.png')
+    this.load.image('yard_parking', 'level/yard_parking.png')
+    this.load.image('dock_separator', 'level/dock_space_separator.png')
+    this.load.image('yard_separator', 'level/yard_space_separator.png')
+    this.load.image('yard_fence', 'level/yard_fence.png')
+    this.load.image('check_in_booth', 'level/check_in.png')
+    this.load.image('main_road', 'level/main_road.png')
+    this.load.spritesheet('exit', 'level/enter_exit.png', {frameWidth: 100, frameHeight: 140, endFrame: 0})
+    this.load.spritesheet('enter', 'level/enter_exit.png', {
+      frameWidth: 100,
+      frameHeight: 140,
+      startFrame: 1,
+    })
+
+    // Sprites
     this.load.spritesheet('trailer', 'trailer2.png', {
       frameWidth: 320,
       frameHeight: 320,
+    })
+
+    this.load.spritesheet('worker', 'workerSpritesheet.png', {
+      frameWidth: 32,
+      frameHeight: 32,
     })
   }
 
@@ -53,5 +78,15 @@ export class Preloader extends Scene {
     //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
     this.scene.start('MainMenu')
   }
+
+
+
+
+
+
+
+
+
+
 
 }

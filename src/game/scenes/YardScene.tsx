@@ -191,12 +191,56 @@ export class YardScene extends Scene {
 
     // Generate
     this.generateTruck()
+
+    this.dayTimer()
     EventBus.emit('current-scene-ready', this)
+  }
+
+  dayTimer = () => {
+    const { width, height } = this.scale
+    const endHour = 17
+
+    const time: { hour: number; min: number } = { hour: 9, min: 0 }
+
+    const timeDisplay = this.add.text(width - 50, height - 25, '9:00')
+
+    new Promise<void>((resolve) => {
+      const timer = this.time.addEvent({
+        delay: 500,
+        loop: true,
+        callback() {
+          // if all characters are visible, stop the timer
+          if (time.hour >= endHour) {
+            timer.destroy()
+            return resolve()
+          }
+
+          time.min += 5
+
+          if (time.min >= 60) {
+            time.min = 0
+            time.hour += 1
+          }
+
+          if (endHour - time.hour === 2) {
+            timeDisplay.setColor('orange')
+          } else if (endHour - time.hour <= 1) {
+            timeDisplay.setColor('red')
+          }
+
+          timeDisplay.setText(
+            `${time.hour}:${time.min >= 10 ? time.min : '0' + `${time.min}`}`,
+          )
+        },
+      })
+    }).then(() => {
+      this.endDay()
+    })
   }
 
   generateTruck = () => {
     if (this.trucks.length < this.yardSequence.totalTrucks) {
-      const truck = new TruckObject(600, 700, this)
+      const truck = new TruckObject(600, 570, this)
       this.physics.add.collider(
         this.driver.driver,
         truck.truck,
@@ -279,6 +323,11 @@ export class YardScene extends Scene {
       this.registry.set('completedOrders', this.state.truckFullfillment)
       this.scene.start('DayOverview')
     }
+  }
+
+  endDay = () => {
+    this.registry.set('completedOrders', this.state.truckFullfillment)
+    this.scene.start('DayOverview')
   }
 }
 

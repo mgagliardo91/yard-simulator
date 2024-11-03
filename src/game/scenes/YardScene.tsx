@@ -191,7 +191,6 @@ export class YardScene extends Scene {
 
     // Generate
     this.generateTruck()
-
     this.dayTimer()
     EventBus.emit('current-scene-ready', this)
   }
@@ -209,7 +208,6 @@ export class YardScene extends Scene {
         delay: 500,
         loop: true,
         callback() {
-          // if all characters are visible, stop the timer
           if (time.hour >= endHour) {
             timer.destroy()
             return resolve()

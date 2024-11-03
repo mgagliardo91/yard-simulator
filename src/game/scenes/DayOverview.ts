@@ -70,9 +70,8 @@ export default class DayOverview extends Scene {
         return this.animateText(earnings)
       })
       .then(() => {
-        this.registry.inc('coins', totalEarnings * 10)
+        this.registry.inc('coins', totalEarnings)
       })
-    //await this.animateText(idleTime)
   }
 
   upgradeStore() {
@@ -119,6 +118,10 @@ export default class DayOverview extends Scene {
     toNextDayBtn.on('pointerover', () => toNextDayBtn.setTint(0x66ff7f))
     toNextDayBtn.on('pointerout', () => toNextDayBtn.clearTint())
     toNextDayBtn.on('pointerdown', () => {
+      const baseTrucks = 5
+      const yardLevel = this.registry.get('yardLevel')
+      const totalTrucks = baseTrucks + Math.floor(yardLevel * 1.5)
+      this.registry.set('sequence', { totalTrucks })
       this.startNextScene('Yard')
     })
   }
@@ -165,4 +168,13 @@ export default class DayOverview extends Scene {
     })
   }
 }
+
+
+
+
+
+
+
+
+
 

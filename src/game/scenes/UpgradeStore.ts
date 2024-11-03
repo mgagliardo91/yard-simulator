@@ -222,6 +222,10 @@ export default class UpgradeStore extends Scene {
 
   startNextScene() {
     this.registry.events.removeListener('changedata')
+    const baseTrucks = 5
+    const yardLevel = this.registry.get('yardLevel')
+    const totalTrucks = baseTrucks + Math.floor(yardLevel * 1.5)
+    this.registry.set('sequence', { totalTrucks })
     this.scene.start('Yard')
   }
 

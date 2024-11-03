@@ -28,7 +28,7 @@ export class Preloader extends Scene {
 
   createGameState() {
     this.registry.set('coins', 0)
-    this.registry.set('day', 0)
+    this.registry.set('day', 1)
 
     registerUpgradeConfigs(this.registry)
   }
@@ -78,6 +78,7 @@ export class Preloader extends Scene {
     //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
     this.scene.start('MainMenu')
   }
+
 
 
 

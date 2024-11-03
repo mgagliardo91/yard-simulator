@@ -197,11 +197,16 @@ export class YardScene extends Scene {
 
   dayTimer = () => {
     const { width, height } = this.scale
+    const day = this.registry.get('day')
     const endHour = 17
 
     const time: { hour: number; min: number } = { hour: 9, min: 0 }
 
-    const timeDisplay = this.add.text(width - 50, height - 25, '9:00')
+    const timeDisplay = this.add.text(
+      width - 125,
+      height - 35,
+      `Day: ${day} 9:00`,
+    )
 
     new Promise<void>((resolve) => {
       const timer = this.time.addEvent({
@@ -227,7 +232,9 @@ export class YardScene extends Scene {
           }
 
           timeDisplay.setText(
-            `${time.hour}:${time.min >= 10 ? time.min : '0' + `${time.min}`}`,
+            `Day: ${day} ${time.hour}:${
+              time.min >= 10 ? time.min : '0' + `${time.min}`
+            }`,
           )
         },
       })
@@ -318,12 +325,12 @@ export class YardScene extends Scene {
     }
 
     if (this.trucks.length == 0) {
-      this.registry.set('completedOrders', this.state.truckFullfillment)
-      this.scene.start('DayOverview')
+      this.endDay()
     }
   }
 
   endDay = () => {
+    this.registry.set('day', this.registry.get('day') + 1)
     this.registry.set('completedOrders', this.state.truckFullfillment)
     this.scene.start('DayOverview')
   }

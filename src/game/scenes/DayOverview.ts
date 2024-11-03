@@ -12,7 +12,6 @@ export default class DayOverview extends Scene {
 
   create() {
     this.scoreInfo()
-
     this.upgradeStore()
     this.startNextDay()
 
@@ -127,7 +126,7 @@ export default class DayOverview extends Scene {
   }
 
   startNextScene(sceneKey: string) {
-    //this.registry.events.removeListener('changedata')
+    this.registry.events.removeListener('changedata')
     this.scene.start(sceneKey)
   }
 
@@ -168,6 +167,8 @@ export default class DayOverview extends Scene {
     })
   }
 }
+
+
 
 
 

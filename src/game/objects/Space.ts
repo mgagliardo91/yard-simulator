@@ -25,7 +25,7 @@ export class SpaceObject {
   doorClosed: Phaser.GameObjects.Image
   id = `${uuidv4()}`
   fullfillmentDuration = 0
-  private truckId: string
+  private truckId: string | undefined
 
   private isContained: boolean = false
   private containmentTimer: Phaser.Time.TimerEvent | undefined
@@ -76,6 +76,15 @@ export class SpaceObject {
   get isDockSpace() {
     return this.config.isDock ?? true
   }
+
+  reset = () => {
+    this.truckId = undefined
+    this.isContained = false
+    this.containedTime = 0
+    this.isFullfilled = false
+    this.text.visible = false
+    this.space.setFillStyle()
+}
 
   setDockDoor = () => {
     if (this.isDock) {
@@ -152,9 +161,8 @@ export class SpaceObject {
     ) {
       this.isFullfilled = true
       this.clearTimer()
-      this.config.onFullfilledHandler?.(this.truckId)
-      this.setDockDoor()
-      this.setColor()
+      if (this.truckId) this.config.onFullfilledHandler?.(this.truckId)
+      this.setContainment()
     }
 
     return this.isFullfilled

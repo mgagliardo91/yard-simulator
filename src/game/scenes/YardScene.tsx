@@ -222,7 +222,7 @@ export class YardScene extends Scene {
 
     new Promise<void>((resolve) => {
       const timer = this.time.addEvent({
-        delay: 200,
+        delay: 500,
         loop: true,
         callback() {
           if (time.hour >= endHour) {
@@ -244,8 +244,7 @@ export class YardScene extends Scene {
           }
 
           timeDisplay.setText(
-            `Day: ${day} ${time.hour}:${
-              time.min >= 10 ? time.min : '0' + `${time.min}`
+            `Day: ${day} ${time.hour}:${time.min >= 10 ? time.min : '0' + `${time.min}`
             }`,
           )
         },
@@ -334,12 +333,16 @@ export class YardScene extends Scene {
     const truck = this.trucks[truckIndex]
     if (truck.fullfilled) {
       this.triggerTruckExit()
+      this.spaces.find((s) => s.id == truck.spaceId)?.reset()
       this.state.truckFullfillment[truck.id] = {
         idleTime: truck.idleTime,
       }
       this.truckGroup.remove(truck.truck)
       truck.truck.destroy()
-      this.trucks.splice(truckIndex, 1)
+      this.trucks = this.trucks.filter((t) => t.id !== truck.id)
+      this.time.delayedCall(10, () => {
+        this.spaces.find((s) => s.id == truck.spaceId)?.reset()
+      })
     }
 
     if (this.trucks.length == 0) {

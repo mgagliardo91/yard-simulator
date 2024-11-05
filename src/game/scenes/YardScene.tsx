@@ -6,13 +6,15 @@ import { DriverObject } from '../objects/Driver'
 import { CapturedKeys } from '../types/capturedKeys'
 import { ExitObject } from '../objects/Exit'
 import { InfoPanel } from '../objects/InfoPanel'
-import { generateOrder } from '../types/order'
+import { generateOrder, TruckOrder } from '../types/order'
 import { BackgroundCars } from '../objects/BackgroundCars'
 
 class YardState {
   activeTruck: TruckObject | undefined
   enterLock: boolean = false
-  truckFullfillment: { [truckId: string]: { idleTime: number } } = {}
+  truckFullfillment: {
+    [truckId: string]: { idleTime: number; order?: TruckOrder }
+  } = {}
   currentTruckId: number = 0
 }
 
@@ -256,7 +258,12 @@ export class YardScene extends Scene {
 
   generateTruck = () => {
     if (this.trucks.length < this.yardSequence.totalTrucks) {
-      const truck = new TruckObject(600, 570, this, generateOrder(++this.state.currentTruckId))
+      const truck = new TruckObject(
+        600,
+        570,
+        this,
+        generateOrder(++this.state.currentTruckId),
+      )
       this.physics.add.collider(
         this.driver.driver,
         truck.truck,
@@ -336,6 +343,7 @@ export class YardScene extends Scene {
       this.spaces.find((s) => s.id == truck.spaceId)?.reset()
       this.state.truckFullfillment[truck.id] = {
         idleTime: truck.idleTime,
+        order: truck.order,
       }
       this.truckGroup.remove(truck.truck)
       truck.truck.destroy()

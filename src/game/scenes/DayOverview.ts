@@ -1,5 +1,6 @@
 import { GameObjects, Scene } from 'phaser'
 import Coins from '../Coins'
+import { TruckOrder } from '../types/order'
 
 export default class DayOverview extends Scene {
   constructor() {
@@ -8,9 +9,13 @@ export default class DayOverview extends Scene {
 
   preload() {
     this.load.image('overviewBtn', 'assets/buyButton.png')
+    this.load.image('clipboard', 'assets/clipboard.png')
   }
 
   create() {
+    const { width, height } = this.scale
+
+    this.add.image(width * 0.5, height * 0.45, 'clipboard').setOrigin(0.5, 0.5)
     this.scoreInfo()
     this.upgradeStore()
     this.startNextDay()
@@ -21,7 +26,7 @@ export default class DayOverview extends Scene {
   async scoreInfo() {
     const { width, height } = this.scale
     const completedOrders = this.registry.get('completedOrders') as {
-      [truckId: string]: { idleTime: number }
+      [truckId: string]: { idleTime: number; order: TruckOrder }
     }
 
     const totalCompleted = Object.keys(completedOrders ?? {}).length
@@ -167,6 +172,14 @@ export default class DayOverview extends Scene {
     })
   }
 }
+
+
+
+
+
+
+
+
 
 
 

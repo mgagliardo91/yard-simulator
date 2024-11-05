@@ -39,6 +39,7 @@ export class Preloader extends Scene {
 
     // Common images
     this.load.image('coin', 'coin.png')
+    this.load.image('title-background', 'yard-sim-bg.jpg')
     this.load.image('background', 'background.png')
     this.load.image('yard', 'yard_space.png')
     this.load.image('dock', 'dock_door.png')
@@ -46,6 +47,7 @@ export class Preloader extends Scene {
     // Level Art
     this.load.image('warehouse', 'level/Warehouse.png')
     this.load.image('dock_door', 'level/dock_door.png')
+    this.load.image('dock_door_open', 'level/dock_door_open.png')
     this.load.image('yard_parking', 'level/yard_parking.png')
     this.load.image('dock_separator', 'level/dock_space_separator.png')
     this.load.image('yard_separator', 'level/yard_space_separator.png')
@@ -60,7 +62,7 @@ export class Preloader extends Scene {
     })
 
     // Sprites
-    this.load.spritesheet('trailer', 'trailer2.png', {
+    this.load.spritesheet('trailer', 'trailer.png', {
       frameWidth: 320,
       frameHeight: 320,
     })
@@ -68,6 +70,10 @@ export class Preloader extends Scene {
     this.load.spritesheet('worker', 'workerSpritesheet.png', {
       frameWidth: 32,
       frameHeight: 32,
+    })
+    this.load.spritesheet('car', 'car.png', {
+      frameWidth: 320,
+      frameHeight: 105,
     })
   }
 

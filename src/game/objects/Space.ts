@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import { TruckOrder } from '../types/order'
 
 type OnFullfilledHandler = (truckId: string) => void
 type OnTruckDockedHandler = (truckId: string, spaceId: string) => void
@@ -11,8 +12,8 @@ export type SpaceObjectConfig = {
 }
 
 const Colors = {
-  contained: 0xff0000,
-  fullfilled: 0x808b8d,
+  contained: 0xC5FEB6,
+  fullfilled: 0x26BA00,
 }
 
 export class SpaceObject {
@@ -20,7 +21,10 @@ export class SpaceObject {
   config: SpaceObjectConfig
   time: Phaser.Time.Clock
   text: Phaser.GameObjects.Text
+  doorOpen: Phaser.GameObjects.Image
+  doorClosed: Phaser.GameObjects.Image
   id = `${uuidv4()}`
+  fullfillmentDuration = 0
   private truckId: string
 
   private isContained: boolean = false
@@ -51,7 +55,8 @@ export class SpaceObject {
       scene.add.image(x + 40, y + 50, 'yard_parking')
       //this.space.setFillStyle(0x2ddf5d)
     } else {
-      scene.add.image(x + 40, y + 65, 'dock_door').setOrigin(0.5, 0.5)
+      this.doorClosed = scene.add.image(x + 40, y + 65, 'dock_door').setOrigin(0.5, 0.5)
+      this.doorOpen = scene.add.image(x + 40, y + 65, 'dock_door_open').setOrigin(0.5, 0.5).setVisible(false)
       //scene.add.rectangle(x + 40, y + 65, 80, 70, 0x2ddf5d).setOrigin(0.5, 0.5)
       this.text = scene.add
         .text(
@@ -72,6 +77,13 @@ export class SpaceObject {
     return this.config.isDock ?? true
   }
 
+  setDockDoor = () => {
+    if (this.isDock) {
+      this.doorClosed.setVisible(this.isFullfilled || !this.isContained)
+      this.doorOpen.setVisible(!this.isFullfilled && this.isContained)
+    }
+  }
+
   containsTruck = (truckId: string) => {
     return this.truckId == truckId && this.isContained
   }
@@ -79,6 +91,14 @@ export class SpaceObject {
   countUp = () => {
     if (this.fullfillmentTime && this.containedTime < this.fullfillmentTime) {
       this.containedTime = this.containedTime + 1
+      this.setTimerText()
+    }
+    this.setColor()
+    this.checkFullfillment()
+  }
+
+  setTimerText = () => {
+    if (this.fullfillmentTime) {
       this.text.setText(
         `00:${`${this.fullfillmentTime - this.containedTime}`.padStart(
           2,
@@ -86,11 +106,10 @@ export class SpaceObject {
         )}`,
       )
     }
-    this.setColor()
-    this.checkFullfillment()
   }
 
   startTimer = () => {
+    this.setTimerText()
     this.text.setVisible(true)
     this.clearTimer()
     this.containmentTimer = this.time.addEvent({
@@ -100,9 +119,20 @@ export class SpaceObject {
     })
   }
 
-  setColor = () => {
-    this.space.isFilled = true
+  setContainment = () => {
+    this.setColor()
+    this.setDockDoor()
 
+    if (this.isDock) {
+      if (this.isContained) {
+        this.startTimer()
+      } else {
+        this.clearTimer()
+      }
+    }
+  }
+
+  setColor = () => {
     if (this.isFullfilled) {
       this.space.fillColor = Colors.fullfilled
     } else if (this.isContained) {
@@ -110,6 +140,8 @@ export class SpaceObject {
     } else if (!this.isDock) {
       this.space.setFillStyle(0x2ddf5d)
     }
+
+    this.space.isFilled = true
   }
 
   checkFullfillment = () => {
@@ -121,6 +153,8 @@ export class SpaceObject {
       this.isFullfilled = true
       this.clearTimer()
       this.config.onFullfilledHandler?.(this.truckId)
+      this.setDockDoor()
+      this.setColor()
     }
 
     return this.isFullfilled
@@ -132,7 +166,7 @@ export class SpaceObject {
   }
 
   get fullfillmentTime() {
-    return this.isDock ? 5 : undefined
+    return this.isDock ? this.fullfillmentDuration : undefined
   }
 
   get isDock() {
@@ -151,14 +185,7 @@ export class SpaceObject {
     const truckId: string = truck.getData('id')
     const fullfilled: string = truck.getData('fullfilled')
     const spaceId: string = truck.getData('spaceId')
-
-    if (this.truckId && this.truckId !== truckId) {
-      return
-    } else if (!this.truckId && fullfilled) {
-      return
-    } else if (!this.truckId && spaceId) {
-      return
-    }
+    const order: TruckOrder = truck.getData('order')
 
     const width = space.body.width + 10
     const height = space.body.height + 10
@@ -178,20 +205,35 @@ export class SpaceObject {
       ),
     )
 
+    if (this.truckId && this.truckId !== truckId) {
+      if (contained) {
+        this.space.setFillStyle(0xFE6D6D)
+      } else {
+        this.space.isFilled = false
+      }
+      return
+    } else if (!this.truckId && fullfilled) {
+      return
+    } else if (!this.truckId && spaceId) {
+      if (contained) {
+        this.space.setFillStyle(0xFE6D6D)
+      } else {
+        this.space.isFilled = false
+      }
+      return
+    }
+
     if (!this.isContained && contained) {
       this.isContained = true
       this.truckId = truckId
+      this.fullfillmentDuration = order.duration
       this.config.onTruckDockedHandler?.(this.truckId, this.id)
-      this.setColor()
-      if (this.isDock) {
-        this.startTimer()
-      }
+      this.setContainment()
     } else if (this.isContained && !contained) {
       this.isContained = false
-      this.setColor()
-      if (this.isDock) {
-        this.clearTimer()
-      }
+      this.setContainment()
+    } else if (!this.isContained && !this.isDockSpace) {
+      this.space.isFilled = false
     }
   }
 }

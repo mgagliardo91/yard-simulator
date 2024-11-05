@@ -17,7 +17,7 @@ export class MainMenu extends Scene {
   }
 
   create() {
-    this.add.image(1024 / 2, 768 / 2, 'background')
+    this.add.image(1024 / 2, 768 / 2, 'title-background')
     this.gameTitle()
     this.startButton()
     this.quit()
@@ -72,8 +72,12 @@ export class MainMenu extends Scene {
     startBtn.on('pointerout', () => startBtn.clearTint())
 
     startBtn.on('pointerdown', () => {
+        this.cameras.main.fadeOut(500, 0, 0, 0)
+        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, (cam, effect) => {
+            this.scene.start('Yard')
+        })
       this.registry.set('sequence', { totalTrucks: 5 })
-      this.scene.start('Yard')
+    //   this.scene.start('Yard')
     })
   }
 

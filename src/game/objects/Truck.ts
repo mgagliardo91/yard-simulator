@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { TruckOrder } from '../types/order';
 
 export class TruckObject {
   truck: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody
@@ -9,10 +10,11 @@ export class TruckObject {
   idleTime: number = 0
   time: Phaser.Time.Clock
   velocity: number
+  order: TruckOrder
 
   private idleTimer: Phaser.Time.TimerEvent | undefined
 
-  constructor(x: number, y: number, scene: Phaser.Scene) {
+  constructor(x: number, y: number, scene: Phaser.Scene, order: TruckOrder) {
     const truck = scene.add.sprite(x, y, 'trailer').setScale(.25)
     this.truck = scene.physics.add.existing(truck) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody
     this.truck.body.setSize(this.truck.width * 0.60, this.truck.height)
@@ -20,6 +22,8 @@ export class TruckObject {
     this.truck.setData('id', this.id)
     this.time = scene.time
     this.velocity = 300 + (scene.registry.get('truckSpeed') * 100)
+    this.order = order
+    this.truck.setData('order', this.order)
   }
 
   setIdleStatus = (idle: boolean) => {

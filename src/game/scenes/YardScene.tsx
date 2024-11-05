@@ -5,11 +5,14 @@ import { TruckObject } from '../objects/Truck'
 import { DriverObject } from '../objects/Driver'
 import { CapturedKeys } from '../types/capturedKeys'
 import { ExitObject } from '../objects/Exit'
+import { InfoPanel } from '../objects/InfoPanel'
+import { generateOrder } from '../types/order'
 
 class YardState {
   activeTruck: TruckObject | undefined
   enterLock: boolean = false
   truckFullfillment: { [truckId: string]: { idleTime: number } } = {}
+  currentTruckId: number = 0
 }
 
 class YardSequence {
@@ -28,23 +31,25 @@ export class YardScene extends Scene {
   capturedKeys: CapturedKeys
   yardSequence: YardSequence
 
-  state: YardState = new YardState()
+  state: YardState
   driver: DriverObject
-  spaces: SpaceObject[] = []
-  trucks: TruckObject[] = []
+  spaces: SpaceObject[]
+  trucks: TruckObject[]
   exitArea: ExitObject
+  activeInfoPanel: InfoPanel
+  nextInfoPanel: InfoPanel
 
   constructor() {
     super('Yard')
   }
 
   create() {
+    this.spaces = []
+    this.trucks = []
+    this.state = new YardState()
     this.add.image(1024 / 2, 768 / 2, 'background')
     this.platforms = this.physics.add.staticGroup()
     this.yardSequence = this.registry.get('sequence')
-
-    // this.add.image(1024 / 2, 768 / 2, 'yard').setScale(0.25)
-    // this.add.image(1024 / 2, 768 / 2, 'dock').setScale(0.25)
 
     this.capturedKeys = {
       enter: this.input.keyboard!.addKey('E'),
@@ -188,11 +193,36 @@ export class YardScene extends Scene {
 
     // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion
     this.cursors = this.input.keyboard!!.createCursorKeys()
+    this.anims.create({
+      key: 'car_right',
+      frames: [{ key: 'car', frame: 1}],
+      frameRate: 10,
+      repeat: -1,
+    })
+    this.anims.create({
+      key: 'car_left',
+      frames: [{ key: 'car', frame: 0 }],
+      frameRate: 10,
+      repeat: -1,
+    })
+
+    const s = this.physics.add.sprite(40, 680, 'car')
+    s.setScale(.25).anims.play('car_right', true)
+    s.setVelocityX(200)
+
+    const s2 = this.physics.add.sprite(1000, 720, 'car')
+    s2.setScale(.25).anims.play('car_left', true)
+    s2.setVelocityX(-200)
+
+    this.activeInfoPanel = new InfoPanel(50, 670, this)
+    this.nextInfoPanel = new InfoPanel(578, 670, this)
+
 
     // Generate
     this.generateTruck()
     this.dayTimer()
     EventBus.emit('current-scene-ready', this)
+    this.cameras.main.fadeIn(500, 0, 0, 0)
   }
 
   dayTimer = () => {
@@ -210,7 +240,7 @@ export class YardScene extends Scene {
 
     new Promise<void>((resolve) => {
       const timer = this.time.addEvent({
-        delay: 500,
+        delay: 200,
         loop: true,
         callback() {
           if (time.hour >= endHour) {
@@ -245,7 +275,7 @@ export class YardScene extends Scene {
 
   generateTruck = () => {
     if (this.trucks.length < this.yardSequence.totalTrucks) {
-      const truck = new TruckObject(600, 570, this)
+      const truck = new TruckObject(600, 570, this, generateOrder(++this.state.currentTruckId))
       this.physics.add.collider(
         this.driver.driver,
         truck.truck,
@@ -257,6 +287,7 @@ export class YardScene extends Scene {
       this.truckGroup.add(truck.truck)
       truck.truck.body.setCollideWorldBounds(true)
       truck.setIdleStatus(true)
+      this.nextInfoPanel.setOrder(truck.order)
     }
   }
 
@@ -291,12 +322,17 @@ export class YardScene extends Scene {
     this.driver.setDriveMode(false)
     this.state.activeTruck?.setActive(false)
     this.state.activeTruck = undefined
+    this.activeInfoPanel.setOrder()
   }
 
   triggerTruckStart = () => {
     this.state.activeTruck = this.driver.truck
     this.state.activeTruck!.setActive(true)
     this.driver.setDriveMode(true)
+    this.activeInfoPanel.setOrder(this.state.activeTruck?.order)
+    if (this.activeInfoPanel.activeOrder == this.nextInfoPanel.activeOrder) {
+      this.nextInfoPanel.setOrder()
+    }
   }
 
   onTruckDocked = (truckId: string, spaceId: string) => {

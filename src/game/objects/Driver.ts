@@ -13,6 +13,7 @@ export class DriverObject {
     ) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody
     this.driver.body.setCollideWorldBounds(true)
     this.driver.body.pushable = false
+    this.velocity = 300
   }
 
   onTruckCollision = (truck: TruckObject) => () => {
@@ -83,18 +84,17 @@ export class DriverObject {
     this.driver.setVisible(true)
 
     this.truck = undefined
-    const velocity = 300
     if (cursors.left.isDown) {
-      this.driver.body.setVelocityX(-1 * velocity)
+      this.driver.body.setVelocityX(-1 * this.velocity)
       this.driver.anims.play('worker_left', true)
     } else if (cursors.right.isDown) {
-      this.driver.body.setVelocityX(velocity)
+      this.driver.body.setVelocityX(this.velocity)
       this.driver.anims.play('worker_right', true)
     } else if (cursors.up.isDown) {
-      this.driver.body.setVelocityY(-1 * velocity)
+      this.driver.body.setVelocityY(-1 * this.velocity)
       this.driver.anims.play('worker_up', true)
     } else if (cursors.down.isDown) {
-      this.driver.body.setVelocityY(velocity)
+      this.driver.body.setVelocityY(this.velocity)
       this.driver.anims.play('worker_down', true)
     } else {
       this.driver.anims.stop()

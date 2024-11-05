@@ -42,7 +42,6 @@ export class Preloader extends Scene {
     this.load.image('title-background', 'yard-sim-bg.jpg')
     this.load.image('background', 'background.png')
     this.load.image('yard', 'yard_space.png')
-    this.load.image('dock', 'dock_door.png')
 
     // Level Art
     this.load.image('warehouse', 'level/Warehouse.png')
@@ -71,10 +70,15 @@ export class Preloader extends Scene {
       frameWidth: 32,
       frameHeight: 32,
     })
-    this.load.spritesheet('car', 'car.png', {
-      frameWidth: 320,
-      frameHeight: 105,
-    })
+
+    const uniqueCars = 4
+    this.registry.set('uniqueCars', uniqueCars)
+    for (let i = 0; i < uniqueCars; i++) {
+      this.load.spritesheet(`car${i}`, `cars/car-${i}.png`, {
+        frameWidth: 320,
+        frameHeight: 105,
+      })
+    }
   }
 
   create() {

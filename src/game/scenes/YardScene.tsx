@@ -7,6 +7,7 @@ import { CapturedKeys } from '../types/capturedKeys'
 import { ExitObject } from '../objects/Exit'
 import { InfoPanel } from '../objects/InfoPanel'
 import { generateOrder } from '../types/order'
+import { BackgroundCars } from '../objects/BackgroundCars'
 
 class YardState {
   activeTruck: TruckObject | undefined
@@ -193,30 +194,11 @@ export class YardScene extends Scene {
 
     // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion
     this.cursors = this.input.keyboard!!.createCursorKeys()
-    this.anims.create({
-      key: 'car_right',
-      frames: [{ key: 'car', frame: 1}],
-      frameRate: 10,
-      repeat: -1,
-    })
-    this.anims.create({
-      key: 'car_left',
-      frames: [{ key: 'car', frame: 0 }],
-      frameRate: 10,
-      repeat: -1,
-    })
 
-    const s = this.physics.add.sprite(40, 680, 'car')
-    s.setScale(.25).anims.play('car_right', true)
-    s.setVelocityX(200)
-
-    const s2 = this.physics.add.sprite(1000, 720, 'car')
-    s2.setScale(.25).anims.play('car_left', true)
-    s2.setVelocityX(-200)
+    new BackgroundCars(this.registry.get('uniqueCars'), this)
 
     this.activeInfoPanel = new InfoPanel(50, 670, this)
     this.nextInfoPanel = new InfoPanel(578, 670, this)
-
 
     // Generate
     this.generateTruck()

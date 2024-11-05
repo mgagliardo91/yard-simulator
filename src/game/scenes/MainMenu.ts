@@ -14,6 +14,8 @@ export class MainMenu extends Scene {
 
   preload() {
     this.load.image('menu-button', 'assets/buyButton.png')
+    this.load.image('title', 'assets/title.png')
+    this.load.image('geolithic', 'assets/geolithic_studios.png')
   }
 
   create() {
@@ -21,34 +23,22 @@ export class MainMenu extends Scene {
     this.gameTitle()
     this.startButton()
     this.quit()
+    this.geolithicStudios()
 
     EventBus.emit('current-scene-ready', this)
   }
 
   gameTitle() {
     const { width, height } = this.scale
-    this.add
-      .text(width * 0.5, height * 0.2, 'Yard Simulator 2024', {
-        color: '#42b4ff',
-        fontSize: 75,
-        fontFamily: 'verdana',
-        fontStyle: 'bold',
-        shadow: {
-          offsetX: 4,
-          offsetY: 4,
-          blur: 5,
-          stroke: true,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
+
+    this.add.image(width * 0.5, height * 0.2, 'title').setOrigin(0.5)
   }
 
   startButton() {
     const { width, height } = this.scale
 
     const startBtn = this.add
-      .image(width * 0.5, height * 0.5 - 75, 'menu-button')
+      .image(width * 0.5, height * 0.5, 'menu-button')
       .setDisplaySize(300, 100)
       .setOrigin(0.5)
       .setInteractive()
@@ -72,12 +62,14 @@ export class MainMenu extends Scene {
     startBtn.on('pointerout', () => startBtn.clearTint())
 
     startBtn.on('pointerdown', () => {
-        this.cameras.main.fadeOut(500, 0, 0, 0)
-        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, (cam, effect) => {
-            this.scene.start('Yard')
-        })
+      this.cameras.main.fadeOut(500, 0, 0, 0)
+      this.cameras.main.once(
+        Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,
+        () => {
+          this.scene.start('Yard')
+        },
+      )
       this.registry.set('sequence', { totalTrucks: 5 })
-    //   this.scene.start('Yard')
     })
   }
 
@@ -85,7 +77,7 @@ export class MainMenu extends Scene {
     const { width, height } = this.scale
 
     const quit = this.add
-      .image(width * 0.5, height * 0.5 + 75, 'menu-button')
+      .image(width * 0.5, height * 0.7, 'menu-button')
       .setDisplaySize(300, 100)
       .setOrigin(0.5)
       .setInteractive()
@@ -112,7 +104,27 @@ export class MainMenu extends Scene {
       this.scene.start('Yard')
     })
   }
+
+  geolithicStudios() {
+    const { width, height } = this.scale
+
+    this.add
+      .image(width * 0.5, height * 0.9, 'geolithic')
+      .setOrigin(0.5)
+      .setScale(0.5)
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

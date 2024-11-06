@@ -47,6 +47,11 @@ export class YardScene extends Scene {
   }
 
   create() {
+    const bgMusic = this.sound.add('background');
+    bgMusic.loop = true;
+    bgMusic.setVolume(0.05)
+    bgMusic.play();
+
     this.spaces = []
     this.trucks = []
     this.state = new YardState()
@@ -256,6 +261,10 @@ export class YardScene extends Scene {
     })
   }
 
+  allTrucksInSpace = () => {
+    return this.trucks.every((t) => this.spaces.some((s) => s.containsTruck(t.id)))
+  }
+
   generateTruck = () => {
     if (this.trucks.length < this.yardSequence.totalTrucks) {
       const truck = new TruckObject(
@@ -290,7 +299,10 @@ export class YardScene extends Scene {
         this.spaces.find((s) => s.containsTruck(this.state.activeTruck!.id))
       ) {
         this.triggerTruckExit()
-        this.generateTruck()
+        if (this.allTrucksInSpace()) {
+          this.generateTruck()
+        }
+
       } else if (this.driver.truck) {
         this.triggerTruckStart()
       }

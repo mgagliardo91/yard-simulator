@@ -45,6 +45,8 @@ export class Preloader extends Scene {
     this.load.image('title-background', 'yard-sim-bg.jpg')
     this.load.image('background', 'background.png')
     this.load.image('yard', 'yard_space.png')
+    this.load.audio('background', 'sounds/music.mp3')
+    this.load.audio('door', 'sounds/door_short2.mp3')
 
     // Level Art
     this.load.image('warehouse', 'level/Warehouse.png')

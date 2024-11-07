@@ -37,6 +37,7 @@ export class SpaceObject {
     y: number,
     scene: Phaser.Scene,
     config: SpaceObjectConfig = {},
+    unlocked = false,
   ) {
     this.config = config
     this.time = scene.time
@@ -52,12 +53,17 @@ export class SpaceObject {
     scene.physics.add.existing(this.space, true)
 
     if (!isDock) {
-      scene.add.image(x + 40, y + 50, 'yard_parking')
-      //this.space.setFillStyle(0x2ddf5d)
+      if (unlocked) {
+        scene.add.image(x + 40, y + 50, 'yard_parking')
+      }
     } else {
-      this.doorClosed = scene.add.image(x + 40, y + 65, 'dock_door').setOrigin(0.5, 0.5)
-      this.doorOpen = scene.add.image(x + 40, y + 65, 'dock_door_open').setOrigin(0.5, 0.5).setVisible(false)
-      //scene.add.rectangle(x + 40, y + 65, 80, 70, 0x2ddf5d).setOrigin(0.5, 0.5)
+      this.doorClosed = scene.add
+        .image(x + 40, y + 65, 'dock_door')
+        .setOrigin(0.5, 0.5)
+      this.doorOpen = scene.add
+        .image(x + 40, y + 65, 'dock_door_open')
+        .setOrigin(0.5, 0.5)
+        .setVisible(false)
       this.text = scene.add
         .text(
           x + 40,
@@ -84,7 +90,7 @@ export class SpaceObject {
     this.isFullfilled = false
     this.text.visible = false
     this.space.setFillStyle()
-}
+  }
 
   setDockDoor = () => {
     if (this.isDock) {
@@ -215,7 +221,7 @@ export class SpaceObject {
 
     if (this.truckId && this.truckId !== truckId) {
       if (contained) {
-        this.space.setFillStyle(0xFE6D6D)
+        this.space.setFillStyle(0xfe6d6d)
       } else {
         this.space.isFilled = false
       }
@@ -224,7 +230,7 @@ export class SpaceObject {
       return
     } else if (!this.truckId && spaceId) {
       if (contained) {
-        this.space.setFillStyle(0xFE6D6D)
+        this.space.setFillStyle(0xfe6d6d)
       } else {
         this.space.isFilled = false
       }

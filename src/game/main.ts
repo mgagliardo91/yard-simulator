@@ -29,6 +29,3 @@ const StartGame = (parent: string) => {
 }
 
 export default StartGame
-
-
-

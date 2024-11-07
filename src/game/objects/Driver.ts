@@ -13,7 +13,7 @@ export class DriverObject {
     ) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody
     this.driver.body.setCollideWorldBounds(true)
     this.driver.body.pushable = false
-    this.velocity = 300
+    this.velocity = 300 + scene.registry.get('workerSpeed') * 100
   }
 
   onTruckCollision = (truck: TruckObject) => () => {
@@ -100,5 +100,5 @@ export class DriverObject {
       this.driver.anims.stop()
     }
   }
-
 }
+

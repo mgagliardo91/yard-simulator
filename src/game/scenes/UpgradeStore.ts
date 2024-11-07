@@ -1,6 +1,7 @@
 import { GameObjects, Scene } from 'phaser'
 import { EventBus } from '../EventBus'
 import { getUpgradeConfig, getUpgrades, Upgrades } from '../../config/upgrades'
+import Coins from '../Coins'
 
 export default class UpgradeStore extends Scene {
   title: GameObjects.Text
@@ -20,8 +21,9 @@ export default class UpgradeStore extends Scene {
   }
 
   create() {
+    this.add.image(1024 / 2, 768 / 2, 'title-background').setTint(0x363636)
     this.renderTitle()
-    this.renderCoinCount()
+    new Coins(this, '#ffffff')
     this.renderUpgradeList()
     this.renderStartNextDay()
 
@@ -66,9 +68,10 @@ export default class UpgradeStore extends Scene {
   }
 
   hasRequiredDeps(key: Upgrades) {
-    return (getUpgradeConfig(key).deps ?? []).every(([upgrade, lvl]) => {
-      return this.registry.get(upgrade) >= lvl
-    })
+    return true
+    // return (getUpgradeConfig(key).deps ?? []).every(([upgrade, lvl]) => {
+    //   return this.registry.get(upgrade) >= lvl
+    // })
   }
 
   renderUpgradeList() {
@@ -86,13 +89,13 @@ export default class UpgradeStore extends Scene {
     const { width } = this.scale
 
     const labelObj = this.add
-      .text(x, y, '?', { fontSize: 20, color: '#000', align: 'right' })
+      .text(x, y, '?', { fontSize: 20, color: '#ffffff', align: 'right' })
       .setOrigin(0, 0.5)
 
     const upgradeProgress = this.add
       .text(width * 0.5, y, '', {
         fontSize: 20,
-        color: '#000',
+        color: '#ffffff',
       })
       .setOrigin(0.5, 0.5)
 

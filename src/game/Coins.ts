@@ -9,7 +9,7 @@ export default class Coins extends Phaser.GameObjects.Container {
   coinSprite: Phaser.GameObjects.Image
   coinCount: Phaser.GameObjects.Text
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, textColor = '#000') {
     super(scene)
 
     this.scene = scene
@@ -21,7 +21,7 @@ export default class Coins extends Phaser.GameObjects.Container {
     this.coinCount = this.scene.add
       .text(coinSprite.x - 60, coinSprite.y, this.scene.registry.get('coins'), {
         fontSize: 20,
-        color: '#000',
+        color: textColor,
       })
       .setOrigin(0.5)
 
@@ -38,7 +38,11 @@ export default class Coins extends Phaser.GameObjects.Container {
   }
 
   animate(newCount: number) {
-    let counter = Number(this.coinCount.text)
+    let currentCount = Number(this.coinCount.text)
+
+    const change = newCount > currentCount ? 1 : -1
+
+    const totalChange = Math.abs(newCount - currentCount)
 
     const setCoins = (count: number) => {
       this.coinCount.setText(`${count}`)
@@ -53,15 +57,17 @@ export default class Coins extends Phaser.GameObjects.Container {
         loop: true,
         callback() {
           // reduce delay
-          this.delay = baseDelay - (baseDelay - 1) * (counter / newCount)
-          if (counter === newCount) {
+          const currentChange = Math.abs(newCount - currentCount)
+          this.delay =
+            baseDelay - (baseDelay - 1) * (currentChange / totalChange)
+          if (currentCount === newCount) {
             timer.destroy()
             return resolve()
           }
 
-          counter++
+          currentCount += change
 
-          setCoins(counter)
+          setCoins(currentCount)
         },
       })
     })

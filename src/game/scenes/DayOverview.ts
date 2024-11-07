@@ -2,7 +2,14 @@ import { GameObjects, Scene } from 'phaser'
 import Coins from '../Coins'
 import { TruckOrder } from '../types/order'
 
+interface OrderDetail {
+  label: string
+  award: number
+  bonus: number
+}
+
 export default class DayOverview extends Scene {
+  clipboard: GameObjects.Image
   constructor() {
     super('DayOverview')
   }
@@ -15,66 +22,138 @@ export default class DayOverview extends Scene {
   create() {
     const { width, height } = this.scale
 
-    this.add.image(width * 0.5, height * 0.45, 'clipboard').setOrigin(0.5, 0.5)
-    this.scoreInfo()
+    this.add.image(1024 / 2, 768 / 2, 'title-background')
+
+    this.clipboard = this.add
+      .image(width * 0.5, height * 0.45, 'clipboard')
+      .setOrigin(0.5, 0.5)
+
+    this.add
+      .text(
+        this.clipboard.x,
+        this.clipboard.y - this.clipboard.height * 0.25,
+        'Daily Report',
+        {
+          fontSize: 20,
+          color: '#000',
+          fontStyle: 'bold',
+        },
+      )
+      .setOrigin(0.5)
+    this.scoreDetails()
+    //this.scoreInfo()
     this.upgradeStore()
     this.startNextDay()
 
     new Coins(this)
   }
 
-  async scoreInfo() {
-    const { width, height } = this.scale
+  async scoreDetails() {
+    const paperWidth = this.clipboard.width * 0.4
+
+    const paperLeft = this.clipboard.x - paperWidth * 0.5
+    //const paperRight = this.clipboard.x + paperWidth * 0.5
+
+    const baseHeight = this.clipboard.y - this.clipboard.height * 0.22
+
     const completedOrders = this.registry.get('completedOrders') as {
       [truckId: string]: { idleTime: number; order: TruckOrder }
     }
 
-    const totalCompleted = Object.keys(completedOrders ?? {}).length
+    const dailyOrders = Object.values(completedOrders ?? {})
 
-    const totalIdleTime = Object.values(completedOrders ?? {}).reduce<number>(
-      (total, { idleTime }) => {
-        return total + idleTime
+    const { details, earnings } = dailyOrders.reduce<{
+      details: OrderDetail[]
+      earnings: number
+    }>(
+      (acc, { idleTime, order }) => {
+        const label = `Order # ${order.number}: ${order.cargo}`
+        const award = 5 + order.duration
+        const bonus =
+          order.duration - idleTime > 0 ? order.duration - idleTime : 0
+
+        acc.details.push({
+          label,
+          award,
+          bonus,
+        })
+        acc.earnings += award + bonus
+        return acc
       },
-      0,
+      { details: [], earnings: 0 },
     )
 
-    const completed = this.add
-      .text(width * 0.5, height * 0.3, `Completed Orders: ${totalCompleted}`, {
-        fontSize: 20,
-        color: '#000',
-      })
-      .setOrigin(0.5)
-      .setVisible(false)
+    const detailsPromise = details.reduce<Promise<void>>(
+      (renderPromise, order, i) => {
+        const y = i * 70
+        const yOffset = 18
+        return renderPromise
+          .then(() => {
+            return this.animateText(
+              this.add
+                .text(paperLeft, baseHeight + y, order.label, {
+                  fontSize: 14,
+                  color: '#000',
+                })
+                .setOrigin(0)
+                .setVisible(false),
+            )
+          })
+          .then(() => {
+            return this.animateText(
+              this.add
+                .text(
+                  paperLeft,
+                  baseHeight + y + yOffset,
+                  `Earnings: ${order.award}`,
+                  {
+                    fontSize: 12,
+                    color: '#000',
+                  },
+                )
+                .setOrigin(0)
+                .setVisible(false),
+            )
+          })
+          .then(() => {
+            return this.animateText(
+              this.add
+                .text(
+                  paperLeft,
+                  baseHeight + y + yOffset * 2,
+                  `Time Bonus: ${order.bonus}`,
+                  {
+                    fontSize: 12,
+                    color: '#000',
+                  },
+                )
+                .setOrigin(0)
+                .setVisible(false),
+            )
+          })
+      },
+      Promise.resolve(),
+    )
 
-    const idleTime = this.add
-      .text(width * 0.5, height * 0.4, `Total Idle Time: ${totalIdleTime}`, {
-        fontSize: 20,
-        color: '#000',
-      })
-      .setOrigin(0.5)
-      .setVisible(false)
-
-    const completedEarning = totalCompleted * 20
-    const idlePenalty = Math.floor(totalIdleTime * 0.5)
-    const totalEarnings = completedEarning - idlePenalty
-
-    const earnings = this.add
-      .text(width * 0.5, height * 0.5, `Total Earnings: ${totalEarnings}`, {
-        fontSize: 20,
-        color: '#000',
-      })
-      .setOrigin(0.5)
-      .setVisible(false)
-
-    this.animateText(completed)
+    detailsPromise
       .then(() => {
-        return this.animateText(idleTime)
+        return this.animateText(
+          this.add
+            .text(
+              this.clipboard.x,
+              this.clipboard.height * 0.82,
+              `Total Earnings: ${earnings}`,
+              {
+                fontSize: 15,
+                color: '#000',
+              },
+            )
+            .setOrigin(0.2)
+            .setVisible(false),
+        )
       })
       .then(() => {
-        return this.animateText(earnings)
-      })
-      .then(() => {
-        this.registry.inc('coins', totalEarnings)
+        this.registry.inc('coins', earnings)
       })
   }
 
@@ -172,23 +251,4 @@ export default class DayOverview extends Scene {
     })
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

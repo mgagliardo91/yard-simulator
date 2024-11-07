@@ -23,7 +23,6 @@ export class Preloader extends Scene {
       bar.width = 4 + 460 * progress
     })
 
-
     this.input.setDefaultCursor('url(assets/cursor.png), pointer')
 
     this.createGameState()
@@ -58,7 +57,12 @@ export class Preloader extends Scene {
     this.load.image('yard_fence', 'level/yard_fence.png')
     this.load.image('check_in_booth', 'level/check_in.png')
     this.load.image('main_road', 'level/main_road.png')
-    this.load.spritesheet('exit', 'level/enter_exit.png', {frameWidth: 100, frameHeight: 140, endFrame: 0})
+    this.load.image('space_locked', 'level/space_locked.png')
+    this.load.spritesheet('exit', 'level/enter_exit.png', {
+      frameWidth: 100,
+      frameHeight: 140,
+      endFrame: 0,
+    })
     this.load.spritesheet('enter', 'level/enter_exit.png', {
       frameWidth: 100,
       frameHeight: 140,
@@ -93,18 +97,5 @@ export class Preloader extends Scene {
     //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
     this.scene.start('MainMenu')
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
+
